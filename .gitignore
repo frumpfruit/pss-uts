@@ -1,0 +1,59 @@
+# ==============================================================================
+# SIAKAD Platform - Root .gitignore
+# ==============================================================================
+
+# Environment files & Secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Operating System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE & Editor files
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*~
+
+# Python & Django Backend
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/*.sqlite3
+**/*.sqlite3-journal
+**/db.sqlite3
+**/media/
+**/staticfiles/
+**/collected_static/
+**/*.log
+
+# Python Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Testing & Coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node & Frontend (handled in frontend/.gitignore, fallback at root)
+**/node_modules/
+**/dist/
+**/dist-ssr/

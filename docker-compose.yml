@@ -1,0 +1,239 @@
+version: '3.8'
+
+services:
+  # ----------------------------------------------------------------------------
+  # PostgreSQL Database
+  # ----------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: siakad-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-siakad_db}
+      POSTGRES_USER: ${POSTGRES_USER:-siakad_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-siakad_secure_password_2026}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-siakad_admin} -d ${POSTGRES_DB:-siakad_db}"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    networks:
+      - siakad-network
+
+  # ----------------------------------------------------------------------------
+  # Redis Cache & Message Broker
+  # ----------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: siakad-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    networks:
+      - siakad-network
+
+  # ----------------------------------------------------------------------------
+  # Microservice 1: Auth & User Service (Port 8001)
+  # ----------------------------------------------------------------------------
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: siakad-auth-service
+    restart: unless-stopped
+    environment:
+      - PORT=8001
+      - DATABASE_URL=postgres://${POSTGRES_USER:-siakad_admin}:${POSTGRES_PASSWORD:-siakad_secure_password_2026}@postgres:5432/siakad_auth_db
+      - REDIS_URL=redis://redis:6379/1
+      - SECRET_KEY=${SECRET_KEY:-siakad-super-secret-key-campus-platform-2026}
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - siakad-network
+
+  # ----------------------------------------------------------------------------
+  # Microservice 2: Academic & Course Service (Port 8002)
+  # ----------------------------------------------------------------------------
+  academic-service:
+    build:
+      context: ./services/academic-service
+      dockerfile: Dockerfile
+    container_name: siakad-academic-service
+    restart: unless-stopped
+    environment:
+      - PORT=8002
+      - DATABASE_URL=postgres://${POSTGRES_USER:-siakad_admin}:${POSTGRES_PASSWORD:-siakad_secure_password_2026}@postgres:5432/siakad_academic_db
+      - REDIS_URL=redis://redis:6379/2
+      - SECRET_KEY=${SECRET_KEY:-siakad-super-secret-key-campus-platform-2026}
+    ports:
+      - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - siakad-network
+
+  # ----------------------------------------------------------------------------
+  # Microservice 3: Enrollment & KRS Service (Port 8003)
+  # ----------------------------------------------------------------------------
+  enrollment-service:
+    build:
+      context: ./services/enrollment-service
+      dockerfile: Dockerfile
+    container_name: siakad-enrollment-service
+    restart: unless-stopped
+    environment:
+      - PORT=8003
+      - DATABASE_URL=postgres://${POSTGRES_USER:-siakad_admin}:${POSTGRES_PASSWORD:-siakad_secure_password_2026}@postgres:5432/siakad_enrollment_db
+      - REDIS_URL=redis://redis:6379/3
+      - SECRET_KEY=${SECRET_KEY:-siakad-super-secret-key-campus-platform-2026}
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8006
+    ports:
+      - "8003:8003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - siakad-network
+
+  # ----------------------------------------------------------------------------
+  # Microservice 4: Grade Service (Port 8004)
+  # ----------------------------------------------------------------------------
+  grade-service:
+    build:
+      context: ./services/grade-service
+      dockerfile: Dockerfile
+    container_name: siakad-grade-service
+    restart: unless-stopped
+    environment:
+      - PORT=8004
+      - DATABASE_URL=postgres://${POSTGRES_USER:-siakad_admin}:${POSTGRES_PASSWORD:-siakad_secure_password_2026}@postgres:5432/siakad_grade_db
+      - REDIS_URL=redis://redis:6379/4
+      - SECRET_KEY=${SECRET_KEY:-siakad-super-secret-key-campus-platform-2026}
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8006
+    ports:
+      - "8004:8004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - siakad-network
+
+  # ----------------------------------------------------------------------------
+  # Microservice 5: Attendance Service (Port 8005)
+  # ----------------------------------------------------------------------------
+  attendance-service:
+    build:
+      context: ./services/attendance-service
+      dockerfile: Dockerfile
+    container_name: siakad-attendance-service
+    restart: unless-stopped
+    environment:
+      - PORT=8005
+      - DATABASE_URL=postgres://${POSTGRES_USER:-siakad_admin}:${POSTGRES_PASSWORD:-siakad_secure_password_2026}@postgres:5432/siakad_attendance_db
+      - REDIS_URL=redis://redis:6379/5
+      - SECRET_KEY=${SECRET_KEY:-siakad-super-secret-key-campus-platform-2026}
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8006
+    ports:
+      - "8005:8005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - siakad-network
+
+  # ----------------------------------------------------------------------------
+  # Microservice 6: Notification Service (Port 8006)
+  # ----------------------------------------------------------------------------
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: siakad-notification-service
+    restart: unless-stopped
+    environment:
+      - PORT=8006
+      - DATABASE_URL=postgres://${POSTGRES_USER:-siakad_admin}:${POSTGRES_PASSWORD:-siakad_secure_password_2026}@postgres:5432/siakad_notification_db
+      - REDIS_URL=redis://redis:6379/6
+      - SECRET_KEY=${SECRET_KEY:-siakad-super-secret-key-campus-platform-2026}
+    ports:
+      - "8006:8006"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - siakad-network
+
+  # ----------------------------------------------------------------------------
+  # API Gateway (Nginx Reverse Proxy / Routing - Port 8000)
+  # ----------------------------------------------------------------------------
+  api-gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: siakad-api-gateway
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      - auth-service
+      - academic-service
+      - enrollment-service
+      - grade-service
+      - attendance-service
+      - notification-service
+    networks:
+      - siakad-network
+
+  # ----------------------------------------------------------------------------
+  # React + Vite Frontend (Port 3000)
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: siakad-frontend
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000/api
+    depends_on:
+      - api-gateway
+    networks:
+      - siakad-network
+
+networks:
+  siakad-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

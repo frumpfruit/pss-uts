@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+
+    /* UDINUS Brand Tokens */
+    --color-navy-950: #071527;
+    --color-navy-900: #0B2545;
+    --color-navy-800: #133E87;
+    --color-navy-700: #1D4ED8;
+    --color-navy-600: #2563EB;
+    --color-navy-100: #E0E7FF;
+    --color-navy-50: #EEF2FF;
+
+    --color-gold-600: #D97706;
+    --color-gold-500: #F59E0B;
+    --color-gold-400: #FBBF24;
+    --color-gold-100: #FEF3C7;
+    --color-gold-50: #FFFBEB;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #F8FAFC;
+    color: #1E293B;
+  }
+}
+
+/* Custom scrollbar for modern dashboards */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Card hover & smooth shadows like SaaS reference */
+.dashboard-card {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.02);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.dashboard-card:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+}
+
+.stat-card-pill {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card-pill:hover {
+  transform: translateY(-2px);
+}
+
+/* Gradient banner inspired by reference screenshot */
+.hero-welcome-banner {
+  background: linear-gradient(135deg, #EFF6FF 0%, #E0E7FF 60%, #FEF3C7 100%);
+  border: 1px solid #DBEAFE;
+}
+
+/* Sidebar active item styling inspired by reference */
+.nav-item-active {
+  background-color: #133E87;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(19, 62, 135, 0.25);
+}
+
+.nav-item-active:hover {
+  background-color: #0B2545;
+}
